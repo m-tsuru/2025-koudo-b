@@ -21,4 +21,4 @@ dev-dependencies = []
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/_2025_koudo_b"]
+packages = ["src"]
