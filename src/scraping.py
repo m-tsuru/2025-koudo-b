@@ -1,6 +1,7 @@
 import requests
 import os
 import re
+import time
 from matplotlib import pyplot as plt
 from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qs
@@ -228,16 +229,38 @@ if __name__ == "__main__":
             'magenta'
         ]
 
-        fig = plt.figure(figsize=(10, 6))
+        fig = plt.figure(figsize=(8, 8))
         ax = fig.add_subplot(1,1,1)
 
-        for lang in langs[0]:
-            tops = get_top_repositories("python", per_page=10)
+        for lang in langs:
+            tops = get_top_repositories(lang, per_page = 25)
+            x = []
+            y = []
             for top in tops:
+                time.sleep(5)
                 top_created_at = top['created_at']
-                top_created_at_end = after_days(top_created_at, 60)
+                top_created_at_end = after_days(top_created_at, 180)
                 print(top_created_at_end)
                 pr_count = get_prs_counts_between_dates(top['owner']['login'], top['name'], top_created_at, top_created_at_end)
                 issue_count = get_issues_counts_between_dates(top['owner']['login'], top['name'], top_created_at, top_created_at_end)
-                commit_count = get_commits_counts_between_dates(top['owner']['login'], top['name'], top_created_at, top_created_at_end)
-                print(f"{top['owner']['login']}/{top['name']} - PRs: {pr_count}, Issues: {issue_count}, Commits: {commit_count}")
+                # commit_count = get_commits_counts_between_dates(top['owner']['login'], top['name'], top_created_at, top_created_at_end)
+                print(f"{top['owner']['login']}/{top['name']} - PRs: {pr_count}, Issues: {issue_count}, Commits: -")
+                x.append(pr_count)
+                y.append(issue_count)
+            ax.scatter(x, y, label=lang, color=colors[langs.index(lang)])
+
+        ax.set_xlabel('Pull Requests')
+        ax.set_ylabel('Issues')
+        ax.set_title(f'PRs and Issues - 180 Days From Created Repositories')
+        ax.legend(loc='upper right')
+        ax.set_aspect('equal')
+        ax.set_xlim(-25, 1000)
+        ax.set_ylim(-25, 1000)
+
+        fig.show()
+        fig.savefig("result_2-2.png")
+
+    elif mode == 9:
+            url = "https://api.github.com/rate_limit"
+            headers, data = fetch_data_from_github(url)
+            print("Rate Limit Data:", data)
