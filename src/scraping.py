@@ -4,6 +4,7 @@ import re
 from matplotlib import pyplot as plt
 from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qs
+from datetime import datetime, timedelta
 
 load_dotenv()
 token = os.getenv('GITHUB_API_TOKEN')
@@ -48,6 +49,11 @@ def fetch_data_from_github(url: str, github_token: str | None = token) -> tuple[
 
     return dict(response.headers), response.json()
 
+def after_days(date: str = "2024-04-01", delta_days: int = 60) -> str:
+    dt = datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
+    after_days = dt + timedelta(days=delta_days)
+    return str(after_days.strftime("%Y-%m-%d")) # 2024-05-31
+
 def get_top_repositories(language: str, sort: str = 'stars', order: str = 'desc', per_page: int = 100) -> list:
     """
     Get top repositories for a given programming language from GitHub.
@@ -65,6 +71,64 @@ def get_top_repositories(language: str, sort: str = 'stars', order: str = 'desc'
         raise Exception("No items found in the response.")
 
     return data['items']
+
+def get_prs_counts_between_dates(owner: str, repo: str, start_date: str, end_date: str) -> int:
+    """
+    Get pull requests for a given repository between two dates.
+
+    :param owner: The owner of the repository.
+    :param repo: The name of the repository.
+    :param start_date: Start date in ISO format (YYYY-MM-DD).
+    :param end_date: End date in ISO format (YYYY-MM-DD).
+    :return: count of pull requests.
+    """
+    url = (
+        f"https://api.github.com/search/issues"
+        f"?q=repo:{owner}/{repo}+is:pr+created:{start_date}..{end_date}"
+        f"&per_page=100"
+    )
+    _, raw = fetch_data_from_github(url)
+    return int(raw['total_count'])
+
+def get_issues_counts_between_dates(owner: str, repo: str, start_date: str, end_date: str) -> int:
+    """
+    Get issues for a given repository between two dates.
+
+    :param owner: The owner of the repository.
+    :param repo: The name of the repository.
+    :param start_date: Start date in ISO format (YYYY-MM-DD).
+    :param end_date: End date in ISO format (YYYY-MM-DD).
+    :return: count of issues.
+    """
+
+    url = (
+        f"https://api.github.com/search/issues"
+        f"?q=repo:{owner}/{repo}+is:issue+created:{start_date}..{end_date}"
+        f"&per_page=100"
+    )
+
+    _, raw = fetch_data_from_github(url)
+    return int(raw['total_count'])
+
+def get_commits_counts_between_dates(owner: str, repo: str, start_date: str, end_date: str) -> int:
+    """
+    Get commits for a given repository between two dates.
+
+    :param owner: The owner of the repository.
+    :param repo: The name of the repository.
+    :param start_date: Start date in ISO format (YYYY-MM-DD).
+    :param end_date: End date in ISO format (YYYY-MM-DD).
+    :return: count of commits.
+    """
+
+    url = (
+        f"https://api.github.com/search/commits"
+        f"?q=repo:{owner}/{repo}+committer-date:{start_date}..{end_date}"
+        f"&per_page=100"
+    )
+
+    _, raw = fetch_data_from_github(url)
+    return int(raw['total_count'])
 
 def count_from_link(url: str) -> int:
     """
@@ -107,7 +171,7 @@ def count_from_link(url: str) -> int:
     return count
 
 if __name__ == "__main__":
-    mode = 0 # Change this to run different modes
+    mode = 1 # Change this to run different modes
 
     if mode == 0:
         langs = ['python', 'TypeScript', 'javascript', 'java', 'c++']
@@ -137,3 +201,43 @@ if __name__ == "__main__":
 
         fig.show()
         fig.savefig("result_1-1.png")
+
+    elif mode == 1:
+        langs = [
+            'python',
+            'TypeScript',
+            'javascript',
+            'java',
+            'c++',
+            'c#',
+            'php',
+            'shell',
+            'C',
+            'go'
+        ]
+        colors = [
+            'blue',
+            'orange',
+            'green',
+            'red',
+            'purple',
+            'brown',
+            'pink',
+            'gray',
+            'cyan',
+            'magenta'
+        ]
+
+        fig = plt.figure(figsize=(10, 6))
+        ax = fig.add_subplot(1,1,1)
+
+        for lang in langs[0]:
+            tops = get_top_repositories("python", per_page=10)
+            for top in tops:
+                top_created_at = top['created_at']
+                top_created_at_end = after_days(top_created_at, 60)
+                print(top_created_at_end)
+                pr_count = get_prs_counts_between_dates(top['owner']['login'], top['name'], top_created_at, top_created_at_end)
+                issue_count = get_issues_counts_between_dates(top['owner']['login'], top['name'], top_created_at, top_created_at_end)
+                commit_count = get_commits_counts_between_dates(top['owner']['login'], top['name'], top_created_at, top_created_at_end)
+                print(f"{top['owner']['login']}/{top['name']} - PRs: {pr_count}, Issues: {issue_count}, Commits: {commit_count}")
