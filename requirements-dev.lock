@@ -24,7 +24,10 @@ requests==2.32.3
     # via 2025-koudo-b
 soupsieve==2.7
     # via beautifulsoup4
+types-requests==2.32.0.20250515
+    # via 2025-koudo-b
 typing-extensions==4.13.2
     # via beautifulsoup4
 urllib3==2.4.0
     # via requests
+    # via types-requests

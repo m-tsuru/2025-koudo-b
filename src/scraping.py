@@ -45,7 +45,7 @@ def fetch_data_from_github(url: str, github_token: str | None = token) -> tuple[
     if response.status_code != 200:
         raise Exception(f"Error fetching data from GitHub: {response.status_code} - {response.text}")
 
-    return response.headers, response.json()
+    return dict(response.headers), response.json()
 
 def count_from_link(url: str) -> int:
     """
