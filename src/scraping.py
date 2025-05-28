@@ -1,6 +1,7 @@
 import requests
 import os
 import re
+from matplotlib import pyplot as plt
 from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qs
 
@@ -47,6 +48,24 @@ def fetch_data_from_github(url: str, github_token: str | None = token) -> tuple[
 
     return dict(response.headers), response.json()
 
+def get_top_repositories(language: str, sort: str = 'stars', order: str = 'desc', per_page: int = 100) -> list:
+    """
+    Get top repositories for a given programming language from GitHub.
+
+    :param language: The programming language to filter repositories by.
+    :param sort: The sorting criteria (default is 'stars').
+    :param order: The order of sorting (default is 'desc').
+    :param per_page: Number of repositories to return per page (default is 100).
+    :return: List of top repositories.
+    """
+    url = f"https://api.github.com/search/repositories?q=language:{language}&sort={sort}&order={order}&per_page={per_page}"
+    headers, data = fetch_data_from_github(url)
+
+    if not data or 'items' not in data:
+        raise Exception("No items found in the response.")
+
+    return data['items']
+
 def count_from_link(url: str) -> int:
     """
     Count the number of items with the 'Link' header.
@@ -88,5 +107,33 @@ def count_from_link(url: str) -> int:
     return count
 
 if __name__ == "__main__":
-    count = count_from_link("https://api.github.com/repos/m-tsuru/sasakulab.com/commits")
-    print(f"Total commits: {count}")
+    mode = 0 # Change this to run different modes
+
+    if mode == 0:
+        langs = ['python', 'TypeScript', 'javascript', 'java', 'c++']
+        colors = ['blue', 'orange', 'green', 'red', 'purple']
+
+        fig = plt.figure(figsize=(10, 6))
+        ax = fig.add_subplot(1,1,1)
+
+        for lang in langs:
+            tops = get_top_repositories(lang)
+            x = []
+            y = []
+            for i in tops:
+                x.append(i['id'])
+                y.append(i['stargazers_count'])
+            ax.scatter(x, y, label=lang, color=colors[langs.index(lang)])
+
+        print("x: ", x)
+        print("y: ", y)
+
+        # ax.set_xlim(0, 400000000)
+        # ax.set_ylim(0, 200000)
+        ax.set_xlabel('Repository ID')
+        ax.set_ylabel('Stars')
+        ax.set_title('Top Repository by Language')
+        ax.legend(loc='upper right')
+
+        fig.show()
+        fig.savefig("result_1-1.png")
