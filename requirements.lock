@@ -10,3 +10,21 @@
 #   universal: false
 
 -e file:.
+beautifulsoup4==4.13.4
+    # via 2025-koudo-b
+certifi==2025.4.26
+    # via requests
+charset-normalizer==3.4.2
+    # via requests
+idna==3.10
+    # via requests
+python-dotenv==1.1.0
+    # via 2025-koudo-b
+requests==2.32.3
+    # via 2025-koudo-b
+soupsieve==2.7
+    # via beautifulsoup4
+typing-extensions==4.13.2
+    # via beautifulsoup4
+urllib3==2.4.0
+    # via requests
