@@ -21,7 +21,7 @@ def fetch_data(url: str) -> dict:
 
     return response.json()
 
-def fetch_data_from_github(url: str, github_token: str | None = token) -> (dict, dict):
+def fetch_data_from_github(url: str, github_token: str | None = token) -> tuple[dict, dict]:
     """
     Fetch data from a GitHub API endpoint using a personal access token.
 
