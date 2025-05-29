@@ -55,7 +55,7 @@ def after_days(date: str = "2024-04-01", delta_days: int = 60) -> str:
     after_days = dt + timedelta(days=delta_days)
     return str(after_days.strftime("%Y-%m-%d")) # 2024-05-31
 
-def get_top_repositories(language: str, sort: str = 'stars', order: str = 'desc', per_page: int = 100) -> list:
+def get_top_repositories(language: str, sort: str = 'stars', order: str = 'desc', per_page: int = 100, pagination: int = 0) -> list:
     """
     Get top repositories for a given programming language from GitHub.
 
@@ -65,8 +65,12 @@ def get_top_repositories(language: str, sort: str = 'stars', order: str = 'desc'
     :param per_page: Number of repositories to return per page (default is 100).
     :return: List of top repositories.
     """
-    url = f"https://api.github.com/search/repositories?q=language:{language}&sort={sort}&order={order}&per_page={per_page}"
-    headers, data = fetch_data_from_github(url)
+    if pagination == 0:
+        url = f"https://api.github.com/search/repositories?q=language:{language}&sort={sort}&order={order}&per_page={per_page}"
+        _, data = fetch_data_from_github(url)
+    else:
+        url = f"https://api.github.com/search/repositories?q=language:{language}&sort={sort}&order={order}&per_page={per_page}&page={pagination}"
+        _, data = fetch_data_from_github(url)
 
     if not data or 'items' not in data:
         raise Exception("No items found in the response.")
@@ -172,7 +176,7 @@ def count_from_link(url: str) -> int:
     return count
 
 if __name__ == "__main__":
-    mode = 1 # Change this to run different modes
+    mode = 2 # Change this to run different modes
 
     if mode == 0:
         langs = ['python', 'TypeScript', 'javascript', 'java', 'c++']
@@ -259,6 +263,31 @@ if __name__ == "__main__":
 
         fig.show()
         fig.savefig("result_2-2.png")
+
+    elif mode == 2:
+        langs = [
+            'python',
+            'TypeScript',
+            'javascript',
+            'java',
+            'c++',
+            'c#',
+            'php',
+            'shell',
+            'C',
+            'go'
+        ]
+
+        for lang in langs:
+            with open(f"data/{lang}.txt", "w") as f:
+                for i in range(1, 6):
+                    time.sleep(3)
+                    tops = get_top_repositories(lang, per_page=100, pagination=i)
+                    for top in tops:
+                        description = top.get('description', '')
+                        print(description)
+                        if description != 0:
+                            f.write(f"{description}\n")
 
     elif mode == 9:
             url = "https://api.github.com/rate_limit"
