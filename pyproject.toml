@@ -11,6 +11,14 @@ dependencies = [
     "requests>=2.32.3",
     "types-requests>=2.32.0.20250515",
     "matplotlib>=3.10.3",
+    "wordcloud>=1.9.4",
+    "pandas>=2.2.3",
+    "networkx>=3.4.2",
+    "mecab>=0.996.11",
+    "nltk>=3.9.1",
+    "pyvis>=0.3.2",
+    "scikit-learn>=1.6.1",
+    "gensim>=4.3.3",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
